@@ -1,4 +1,4 @@
-name: CarND-Traffic-Sign-Classifier-Project2
+name: carnd-p2
 dependencies:
 - pip >= 9
 - jupyter
@@ -8,5 +8,3 @@ dependencies:
 - scikit-learn
 - pandas
 - menpo::opencv3
-- pip:
-  - tensorflow >= 0.12.0rc1
