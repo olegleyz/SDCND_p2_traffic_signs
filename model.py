@@ -2,7 +2,7 @@ import tensorflow as tf
 from sklearn.utils import shuffle
 from tensorflow.contrib.layers import flatten
 
-def model_processing(X_train_pp, y_train, X_validation, y_validation):
+def model_processing(mode, X_train_pp, y_train, X_validation, y_validation,  X_test=None, y_test=None):
     def LeNet(x):    
         # Hyperparameters
         padding = 'VALID'
@@ -83,34 +83,37 @@ def model_processing(X_train_pp, y_train, X_validation, y_validation):
     accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     saver = tf.train.Saver()
 
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        num_examples = len(X_train_pp)
-        
-        print("Training...")
-        print()
-        for i in range(EPOCHS):
-            X_train_pp, y_train = shuffle(X_train_pp, y_train)
-            for offset in range(0, num_examples, BATCH_SIZE):
-                end = offset + BATCH_SIZE
-                batch_x, batch_y = X_train_pp[offset:end], y_train[offset:end]
-                sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.7})
-                
-            validation_accuracy = evaluate(X_validation, y_validation)
-            print("EPOCH {} ...".format(i+1))
-            print("Validation Accuracy = {:.3f}".format(validation_accuracy))
-            print()
+    if mode==1:
+        with tf.Session() as sess:
+            sess.run(tf.global_variables_initializer())
+            num_examples = len(X_train_pp)
             
-        saver.save(sess, 'lenet')
-        print("Model saved")
+            print("Training...")
+            print()
+            for i in range(EPOCHS):
+                X_train_pp, y_train = shuffle(X_train_pp, y_train)
+                for offset in range(0, num_examples, BATCH_SIZE):
+                    end = offset + BATCH_SIZE
+                    batch_x, batch_y = X_train_pp[offset:end], y_train[offset:end]
+                    sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.7})
+                    
+                validation_accuracy = evaluate(X_validation, y_validation)
+                print("EPOCH {} ...".format(i+1))
+                print("Validation Accuracy = {:.3f}".format(validation_accuracy))
+                print()
+                
+            saver.save(sess, 'lenet')
+            print("Model saved")
+    elif mode==2:
+        return evaluate(X_test, y_test)
 
-
-def evaluate(X_data, y_data):
-    num_examples = len(X_data)
-    total_accuracy = 0
-    sess = tf.get_default_session()
-    for offset in range(0, num_examples, BATCH_SIZE):
-        batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
-        accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 1})
-        total_accuracy += (accuracy * len(batch_x))
-    return total_accuracy / num_examples
+    def evaluate(X_data, y_data):
+        BATCH_SIZE = 128
+        num_examples = len(X_data)
+        total_accuracy = 0
+        sess = tf.get_default_session()
+        for offset in range(0, num_examples, BATCH_SIZE):
+            batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
+            accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 1})
+            total_accuracy += (accuracy * len(batch_x))
+        return total_accuracy / num_examples
