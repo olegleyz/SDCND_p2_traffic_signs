@@ -42,7 +42,6 @@ def model_processing(X_train_pp, y_train, X_validation, y_validation):
         fc5 = tf.add(tf.matmul(fc4_drop, weights['fully_connected3']), biases['fully_connected3'])
         logits = fc5
         return logits
-
     EPOCHS = 10
     BATCH_SIZE = 128
     input_channels = len(X_train_pp[0][0][0])
@@ -50,7 +49,6 @@ def model_processing(X_train_pp, y_train, X_validation, y_validation):
     sigma = 0.1
     # Training Pipeline
     rate = 0.001
-    
     weights = {
         'layer_1': tf.Variable(tf.truncated_normal([5, 5, input_channels, 6])),
         'layer_2': tf.Variable(tf.truncated_normal([5, 5, 6, 16])),
@@ -80,21 +78,10 @@ def model_processing(X_train_pp, y_train, X_validation, y_validation):
     optimizer = tf.train.AdamOptimizer(learning_rate = rate)
     training_operation = optimizer.minimize(loss_operation)
 
-
-# Model Evaluation
+    # Model Evaluation
     correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(one_hot_y, 1))
     accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     saver = tf.train.Saver()
-
-    def evaluate(X_data, y_data):
-        num_examples = len(X_data)
-        total_accuracy = 0
-        sess = tf.get_default_session()
-        for offset in range(0, num_examples, BATCH_SIZE):
-            batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
-            accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 1})
-            total_accuracy += (accuracy * len(batch_x))
-        return total_accuracy / num_examples
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -116,3 +103,14 @@ def model_processing(X_train_pp, y_train, X_validation, y_validation):
             
         saver.save(sess, 'lenet')
         print("Model saved")
+
+
+def evaluate(X_data, y_data):
+    num_examples = len(X_data)
+    total_accuracy = 0
+    sess = tf.get_default_session()
+    for offset in range(0, num_examples, BATCH_SIZE):
+        batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
+        accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 1})
+        total_accuracy += (accuracy * len(batch_x))
+    return total_accuracy / num_examples
